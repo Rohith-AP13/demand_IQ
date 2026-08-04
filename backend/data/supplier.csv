@@ -1,0 +1,6 @@
+Supplier_ID,Supplier_Name,Cost_Per_Unit,Delivery_Time,Reliability
+S001,ABC Traders,10,3,96
+S002,Global Supply,9,5,90
+S003,Prime Logistics,11,2,98
+S004,Retail Distributors,8,4,88
+S005,Smart Supply,10,3,94

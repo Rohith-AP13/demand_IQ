@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DemandIQ — Demand Forecasting & Inventory Intelligence</title>
+  <meta name="description" content="AI-powered demand forecasting and inventory management using XGBoost and Reinforcement Learning optimization." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 3v18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M7 16l4-4 4 4 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="20" cy="7" r="2" fill="currentColor"/>
+          </svg>
+        </div>
+        <span class="logo-text">DemandIQ</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-item active" data-page="dashboard" id="nav-dashboard">
+        <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"/><rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"/><rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"/><rect x="14" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"/></svg>
+        <span>Dashboard</span>
+      </a>
+      <a href="#" class="nav-item" data-page="forecast" id="nav-forecast">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M3 3v18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M7 14l4-4 4 4 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>Demand Forecast</span>
+      </a>
+      <a href="#" class="nav-item" data-page="inventory" id="nav-inventory">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M20 7H4a2 2 0 00-2 2v9a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z" stroke="currentColor" stroke-width="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2" stroke="currentColor" stroke-width="2"/><path d="M12 12v4M10 14h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <span>Inventory</span>
+      </a>
+      <a href="#" class="nav-item" data-page="optimizer" id="nav-optimizer">
+        <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>RL Optimizer</span>
+      </a>
+      <a href="#" class="nav-item" data-page="suppliers" id="nav-suppliers">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <span>Suppliers</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="model-badge">
+        <div class="model-dot"></div>
+        <span>XGBoost + Q-Learning</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Header -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <h1 class="page-title" id="page-title">Dashboard</h1>
+        <span class="page-subtitle" id="page-subtitle">Real-time AI intelligence</span>
+      </div>
+      <div class="topbar-right">
+        <div class="status-indicator" id="api-status">
+          <div class="status-dot connecting"></div>
+          <span>Connecting...</span>
+        </div>
+        <div class="refresh-btn" id="refresh-btn" title="Refresh data">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M23 4v6h-6M1 20v-6h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+    </header>
+
+    <!-- Pages -->
+    <div class="pages-container">
+
+      <!-- ─── DASHBOARD PAGE ─────────────────────────────────────────── -->
+      <section class="page active" id="page-dashboard">
+        <div class="kpi-grid" id="kpi-grid">
+          <div class="kpi-card" id="kpi-products">
+            <div class="kpi-icon purple"><svg viewBox="0 0 24 24" fill="none"><path d="M20 7H4a2 2 0 00-2 2v9a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z" stroke="currentColor" stroke-width="2"/></svg></div>
+            <div class="kpi-body"><div class="kpi-label">Total Products</div><div class="kpi-value" id="kv-products">—</div></div>
+            <div class="kpi-trend up">↑ Active</div>
+          </div>
+          <div class="kpi-card" id="kpi-stores">
+            <div class="kpi-icon cyan"><svg viewBox="0 0 24 24" fill="none"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="currentColor" stroke-width="2"/></svg></div>
+            <div class="kpi-body"><div class="kpi-label">Total Stores</div><div class="kpi-value" id="kv-stores">—</div></div>
+            <div class="kpi-trend up">↑ Network</div>
+          </div>
+          <div class="kpi-card" id="kpi-demand">
+            <div class="kpi-icon green"><svg viewBox="0 0 24 24" fill="none"><path d="M3 3v18h18M7 16l4-4 4 4 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="kpi-body"><div class="kpi-label">Avg Weekly Demand</div><div class="kpi-value" id="kv-demand">—</div></div>
+            <div class="kpi-trend up">↑ XGBoost</div>
+          </div>
+          <div class="kpi-card" id="kpi-critical">
+            <div class="kpi-icon red"><svg viewBox="0 0 24 24" fill="none"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="currentColor" stroke-width="2"/><line x1="12" y1="9" x2="12" y2="13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="17" x2="12.01" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div>
+            <div class="kpi-body"><div class="kpi-label">Critical Alerts</div><div class="kpi-value" id="kv-critical">—</div></div>
+            <div class="kpi-trend down" id="kpi-critical-trend">Needs Reorder</div>
+          </div>
+        </div>
+
+        <div class="charts-grid">
+          <div class="chart-card wide">
+            <div class="chart-header">
+              <h3>Weekly Sales Trend</h3>
+              <span class="chart-badge">Historical Pattern</span>
+            </div>
+            <div class="chart-wrap"><canvas id="chart-trend"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-header">
+              <h3>Inventory Status</h3>
+              <span class="chart-badge">Live</span>
+            </div>
+            <div class="chart-wrap"><canvas id="chart-status"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-header">
+              <h3>Top Stores by Sales</h3>
+              <span class="chart-badge">Avg</span>
+            </div>
+            <div class="chart-wrap"><canvas id="chart-stores"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-header">
+              <h3>Top Departments</h3>
+              <span class="chart-badge">Avg</span>
+            </div>
+            <div class="chart-wrap"><canvas id="chart-depts"></canvas></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── FORECAST PAGE ──────────────────────────────────────────── -->
+      <section class="page" id="page-forecast">
+        <div class="two-col">
+          <div class="form-card">
+            <div class="form-card-header">
+              <h2>Demand Forecast</h2>
+              <p>Enter parameters to predict weekly sales using XGBoost</p>
+            </div>
+            <form id="forecast-form" class="forecast-form">
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="f-store">Store</label>
+                  <select id="f-store" name="store"><option value="1">Store 1</option></select>
+                </div>
+                <div class="form-group">
+                  <label for="f-dept">Department</label>
+                  <select id="f-dept" name="dept"><option value="1">Dept 1</option></select>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="f-week">Week (1–52)</label>
+                  <input type="number" id="f-week" name="week" min="1" max="52" value="26" />
+                </div>
+                <div class="form-group">
+                  <label for="f-month">Month</label>
+                  <input type="number" id="f-month" name="month" min="1" max="12" value="6" />
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="f-temp">Temperature (°F)</label>
+                  <input type="number" id="f-temp" name="temperature" step="0.1" value="65.0" />
+                </div>
+                <div class="form-group">
+                  <label for="f-fuel">Fuel Price ($)</label>
+                  <input type="number" id="f-fuel" name="fuel_price" step="0.01" value="3.50" />
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="f-cpi">CPI</label>
+                  <input type="number" id="f-cpi" name="cpi" step="0.01" value="211.0" />
+                </div>
+                <div class="form-group">
+                  <label for="f-unemp">Unemployment (%)</label>
+                  <input type="number" id="f-unemp" name="unemployment" step="0.1" value="8.0" />
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group toggle-group">
+                  <label>Holiday Week?</label>
+                  <div class="toggle-wrap">
+                    <label class="toggle"><input type="checkbox" id="f-holiday" name="is_holiday" /><span class="toggle-slider"></span></label>
+                    <span class="toggle-label" id="holiday-label">No</span>
+                  </div>
+                </div>
+                <div class="form-group toggle-group">
+                  <label>Promotion Active?</label>
+                  <div class="toggle-wrap">
+                    <label class="toggle"><input type="checkbox" id="f-promo" name="promotion" /><span class="toggle-slider"></span></label>
+                    <span class="toggle-label" id="promo-label">No</span>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="f-md1">MarkDown1</label>
+                <input type="number" id="f-md1" name="markdown1" step="0.01" value="0" />
+              </div>
+              <button type="submit" class="btn-primary" id="forecast-btn">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Predict Sales
+              </button>
+            </form>
+          </div>
+
+          <div class="result-panel" id="forecast-result-panel">
+            <div class="result-placeholder" id="forecast-placeholder">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M3 3v18h18M7 16l4-4 4 4 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <p>Fill the form and click Predict to see the AI forecast</p>
+            </div>
+            <div class="forecast-result hidden" id="forecast-result">
+              <div class="result-hero">
+                <div class="result-label">Predicted Weekly Sales</div>
+                <div class="result-value" id="r-sales">$0</div>
+                <div class="result-range" id="r-range">Range: $0 – $0</div>
+              </div>
+              <div class="result-details-grid">
+                <div class="result-detail"><span>Store</span><strong id="r-store">—</strong></div>
+                <div class="result-detail"><span>Department</span><strong id="r-dept">—</strong></div>
+                <div class="result-detail"><span>Week</span><strong id="r-week">—</strong></div>
+                <div class="result-detail"><span>Holiday</span><strong id="r-holiday">—</strong></div>
+                <div class="result-detail"><span>Promotion</span><strong id="r-promo">—</strong></div>
+                <div class="result-detail"><span>Model</span><strong>XGBoost</strong></div>
+              </div>
+              <div class="confidence-bar-wrap">
+                <div class="confidence-label">Confidence Range</div>
+                <div class="confidence-bar">
+                  <div class="confidence-fill" id="r-confidence"></div>
+                </div>
+                <div class="confidence-labels">
+                  <span id="r-lower">—</span><span>Prediction</span><span id="r-upper">—</span>
+                </div>
+              </div>
+              <div class="mini-chart-wrap">
+                <canvas id="chart-forecast-mini"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── INVENTORY PAGE ─────────────────────────────────────────── -->
+      <section class="page" id="page-inventory">
+        <div class="inventory-controls">
+          <div class="search-wrap">
+            <svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/><path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <input type="text" id="inv-search" placeholder="Search by store or dept..." />
+          </div>
+          <div class="filter-wrap">
+            <select id="inv-store-filter">
+              <option value="">All Stores</option>
+            </select>
+            <select id="inv-status-filter">
+              <option value="">All Status</option>
+              <option value="CRITICAL">Critical</option>
+              <option value="LOW">Low</option>
+              <option value="OK">OK</option>
+              <option value="EXCESS">Excess</option>
+            </select>
+          </div>
+          <div class="legend-wrap">
+            <span class="legend-dot critical"></span>Critical
+            <span class="legend-dot low"></span>Low
+            <span class="legend-dot ok"></span>OK
+            <span class="legend-dot excess"></span>Excess
+          </div>
+        </div>
+
+        <div class="table-card">
+          <table class="inv-table" id="inv-table">
+            <thead>
+              <tr>
+                <th>Store</th><th>Dept</th><th>Current Stock</th>
+                <th>Pred. Demand</th><th>Safety Stock</th>
+                <th>Reorder Point</th><th>EOQ</th>
+                <th>Days Left</th><th>Supplier</th><th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="inv-tbody">
+              <tr><td colspan="10" class="loading-row"><div class="spinner"></div> Loading inventory data...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="table-footer" id="inv-footer">Showing — records</div>
+      </section>
+
+      <!-- ─── RL OPTIMIZER PAGE ──────────────────────────────────────── -->
+      <section class="page" id="page-optimizer">
+        <div class="two-col">
+          <div class="form-card">
+            <div class="form-card-header">
+              <h2>RL Inventory Optimizer</h2>
+              <p>Q-Learning agent recommends optimal order quantity for a store-department</p>
+            </div>
+            <form id="rl-form">
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="rl-store">Store</label>
+                  <select id="rl-store"></select>
+                </div>
+                <div class="form-group">
+                  <label for="rl-dept">Department</label>
+                  <select id="rl-dept"></select>
+                </div>
+              </div>
+              <div class="rl-info-box">
+                <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                <p>The RL agent runs <strong>500 Q-Learning episodes</strong> to find the optimal order quantity from: 0, 200, 400, 600, 800, or 1000 units. Results take ~10 seconds.</p>
+              </div>
+              <button type="submit" class="btn-primary" id="rl-btn">
+                <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Run RL Optimizer
+              </button>
+            </form>
+          </div>
+
+          <div class="result-panel" id="rl-result-panel">
+            <div class="result-placeholder" id="rl-placeholder">
+              <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <p>Select a store-department and run the Q-Learning optimizer</p>
+            </div>
+            <div class="rl-result hidden" id="rl-result">
+              <div class="rl-hero">
+                <div class="rl-hero-label">RL Recommended Order</div>
+                <div class="rl-hero-value" id="rl-order">0 units</div>
+                <div class="rl-hero-sub" id="rl-sub">Action index: 0</div>
+              </div>
+              <div class="rl-metrics-grid">
+                <div class="rl-metric"><span>Predicted Demand</span><strong id="rl-demand">—</strong></div>
+                <div class="rl-metric"><span>Current Stock</span><strong id="rl-stock">—</strong></div>
+                <div class="rl-metric"><span>Safety Stock</span><strong id="rl-safety">—</strong></div>
+                <div class="rl-metric"><span>Reorder Point</span><strong id="rl-rop">—</strong></div>
+                <div class="rl-metric"><span>EOQ</span><strong id="rl-eoq">—</strong></div>
+                <div class="rl-metric"><span>Days of Stock</span><strong id="rl-days">—</strong></div>
+                <div class="rl-metric"><span>Ordering Cost</span><strong id="rl-ocost">—</strong></div>
+                <div class="rl-metric"><span>Holding Cost</span><strong id="rl-hcost">—</strong></div>
+              </div>
+              <div class="reorder-alert" id="rl-reorder-alert"></div>
+              <div class="q-values-section">
+                <h4>Q-Values by Action</h4>
+                <div class="chart-wrap short"><canvas id="chart-qvalues"></canvas></div>
+              </div>
+              <div class="supplier-card" id="rl-supplier-card"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── SUPPLIERS PAGE ─────────────────────────────────────────── -->
+      <section class="page" id="page-suppliers">
+        <div class="suppliers-grid" id="suppliers-grid">
+          <div class="loading-placeholder"><div class="spinner"></div><p>Loading supplier data...</p></div>
+        </div>
+      </section>
+
+    </div><!-- /pages-container -->
+  </main>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
